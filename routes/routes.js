@@ -12,6 +12,8 @@ Router.post("/register", user_controllers.register);
 Router.post("/login", user_controllers.login);
 //logout
 Router.get("/logout", user_controllers.logout);
+//get user by params
+Router.get("/:_id", user_controllers.getUserById);
 
 //cookie protected route
 Router.get("/me", protect, (req, res) => {

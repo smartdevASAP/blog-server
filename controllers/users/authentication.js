@@ -129,6 +129,32 @@ exports.login = async (req, res) => {
   }
 };
 
+//getting user by id
+exports.getUserById = async (req, res) => {
+  try {
+    const id = req.params._id;
+    const foundUser = await User.findById(id);
+    if (!foundUser) {
+      return res.status(404).json({
+        success: false,
+        message: "no user with id " + id + " found!",
+      });
+    }
+    //if the user exists
+    res.status(200).json({
+      success: true,
+      message: "user found.",
+      user: foundUser,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Error occurred: " + err.message,
+    });
+  }
+};
+
 //logout
 exports.logout = async (req, res) => {
   try {
@@ -152,4 +178,3 @@ exports.logout = async (req, res) => {
     });
   }
 };
-

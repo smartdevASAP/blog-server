@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
 const Router = require("./routes/routes.js");
+const BlogRoutes = require("./routes/blogRoutes.js");
 
 app.use(
   cors({
@@ -15,5 +16,6 @@ app.use(cookieParser());
 app.use(express.json());
 //entry point for all apis
 app.use("/api/v1", Router);
+app.use("/api/blog", BlogRoutes);
 
 module.exports = app;
