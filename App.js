@@ -16,6 +16,6 @@ app.use(cookieParser());
 app.use(express.json());
 //entry point for all apis
 app.use("/api/v1", Router);
-app.use("/api/blog", BlogRoutes);
+app.use("/api/v1/blog", BlogRoutes); //first suspect for an error
 
 module.exports = app;

@@ -1,23 +1,16 @@
+const cloudinary = require("cloudinary").v2;
 const Blog = require("../../models/blog.js");
+const fs = require("fs");
 //test
 exports.test = (req, res) => {
   res.send("blogging API working...");
 };
 
-// CREATE BLOG
+//create a blog
 // exports.createBlog = async (req, res) => {
 //   try {
 //     const { title, excerpt, tags, coverImage } = req.body;
 
-//     // 1️⃣ Ensure user is authenticated
-//     if (!req.user) {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Unauthorized",
-//       });
-//     }
-
-//     // 2️⃣ Validate required fields
 //     if (!title) {
 //       return res.status(400).json({
 //         success: false,
@@ -25,88 +18,24 @@ exports.test = (req, res) => {
 //       });
 //     }
 
-//     // 3️⃣ Create blog with author reference
-//     const newBlog = await Blog.create({
+//     const blog = await Blog.create({
 //       title,
 //       excerpt,
 //       tags,
 //       coverImage,
-//       author: req.user._id, // 🔥 KEY PART
+//       author: req.user._id, //  LINK TO USER
 //     });
 
-//     return res.status(201).json({
+//     res.status(201).json({
 //       success: true,
-//       message: "New blog created successfully",
-//       blog: newBlog,
+//       message: "Blog created successfully",
+//       blog,
 //     });
 //   } catch (err) {
-//     console.error("Create blog error:", err);
-
-//     return res.status(500).json({
+//     console.error(err);
+//     res.status(500).json({
 //       success: false,
-//       message: "Error occurred while creating blog",
-//     });
-//   }
-// };
-
-//ai-2
-exports.createBlog = async (req, res) => {
-  try {
-    const { title, excerpt, tags, coverImage } = req.body;
-
-    if (!title) {
-      return res.status(400).json({
-        success: false,
-        message: "Title is required",
-      });
-    }
-
-    const blog = await Blog.create({
-      title,
-      excerpt,
-      tags,
-      coverImage,
-      author: req.user._id, // 🔗 LINK TO USER
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Blog created successfully",
-      blog,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Error creating blog",
-    });
-  }
-};
-//get a blog bt id
-// exports.getBlogById = async (req, res) => {
-//   try {
-//     //get the id using re.params
-//     const id = req.params.id;
-//     console.log(id);
-//     //check whether the blog exists in the DB
-//     const querriedBlog = await Blog.findById(id);
-//     if (!querriedBlog) {
-//       return res.status(404).json({
-//         success: false,
-//         message:
-//           "blog with id " + id + " doesnt exist. Could be deleted by the owner",
-//       });
-//     }
-//     //send the request back to the user
-//     res.status(200).json({
-//       success: true,
-//       blog: querriedBlog,
-//     });
-//   } catch (err) {
-//     console.log(err.message);
-//     return re.status(500).json({
-//       success: false,
-//       message: "error occured in get the blog " + err.message,
+//       message: "Error creating blog",
 //     });
 //   }
 // };
@@ -143,6 +72,57 @@ exports.getBlogById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error occurred while fetching the blog: " + err.message,
+    });
+  }
+};
+//create blog ai code
+
+exports.createBlog = async (req, res) => {
+  try {
+    const { title, excerpt, tags } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "Title is required",
+      });
+    }
+
+    let coverImageUrl = "";
+
+    // If a file was uploaded
+    if (req.file) {
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "blog_covers", // optional folder
+        use_filename: true,
+        unique_filename: false,
+      });
+
+      coverImageUrl = result.secure_url;
+
+      // Delete temp file
+      fs.unlinkSync(req.file.path);
+    }
+
+    const blog = await Blog.create({
+      title,
+      excerpt,
+      tags,
+      coverImage: coverImageUrl, // Cloudinary URL
+      author: req.user._id, // link to the user
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Blog created successfully",
+      blog,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Error creating blog: " + err.message,
     });
   }
 };
