@@ -41,7 +41,7 @@ exports.test = (req, res) => {
 // };
 
 //confidential controller;
-exports.getBlogById = async (req, res) => {
+exports.getBlogByIdLogged = async (req, res) => {
   try {
     const id = req.params.id;
     console.log(id);
@@ -76,7 +76,6 @@ exports.getBlogById = async (req, res) => {
   }
 };
 //create blog ai code
-
 exports.createBlog = async (req, res) => {
   try {
     const { title, excerpt, tags } = req.body;
@@ -123,6 +122,69 @@ exports.createBlog = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error creating blog: " + err.message,
+    });
+  }
+};
+//get all blogs
+exports.getAllBlogs = async (req, res) => {
+  try {
+    const allBlogs = await Blog.find({});
+    console.log(allBlogs);
+    if (!allBlogs) {
+      return response.status(204).json({
+        success: false,
+        message: "Currently there are no blogs. write one",
+      });
+    }
+    //when teh DB has blogs
+    res.status(200).json({
+      success: true,
+      message: "Blogs present in the database",
+      length: allBlogs.length,
+      blogs: allBlogs,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching blogs: " + err.message,
+    });
+  }
+};
+
+//public getblog using id
+exports.getBlogById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("Fetching blog ID:", id);
+
+    // Validate ID format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid blog ID",
+      });
+    }
+
+    // Find blog by ID (no author restriction)
+    const blog = await Blog.findById(id).populate("author", "name avatar");
+
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      blog,
+    });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Error occurred while fetching the blog: " + err.message,
     });
   }
 };
